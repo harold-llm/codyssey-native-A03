@@ -1,6 +1,6 @@
 "use strict";
 
-const TIMEOUT_MS = 15000;
+const TIMEOUT_MS = 25000; // 백엔드 UPSTREAM_TIMEOUT(20초)보다 넉넉히
 const $ = (id) => document.getElementById(id);
 
 /* ---------- 네비게이션 & 다크 모드 ---------- */

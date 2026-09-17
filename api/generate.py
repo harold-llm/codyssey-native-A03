@@ -1,6 +1,7 @@
 # runtime: vercel-python3.12
 import json
 import os
+import re
 from http.server import BaseHTTPRequestHandler
 
 import requests
@@ -9,8 +10,11 @@ import requests
 # 기본값은 OpenAI 공식 API, 기관 제공 키라면 OPENAI_BASE_URL=https://copa.codyssey.kr/v1 로 설정
 BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
 API_URL = f"{BASE_URL}/chat/completions"
-MODEL = "gpt-4o-mini"
-UPSTREAM_TIMEOUT = 12  # 프론트 15초보다 짧게
+# 기관 게이트웨이는 gpt-4o-mini가 없어서 환경변수로 모델 지정 (기본값만 공식 OpenAI용)
+MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+UPSTREAM_TIMEOUT = 20  # gpt-5 계열은 추론 토큰까지 합쳐 실측 ~10초 → 여유 확보
+# gpt-5 계열은 추론(reasoning)에 토큰 예산을 쓰므로 max_tokens를 넉넉히
+MAX_TOKENS = 4000
 
 CATEGORY_LABELS = {
     "fashion": "의류·패션잡화",
@@ -29,9 +33,18 @@ SYSTEM_PROMPT = """역할: 한국 중고거래 판매글을 쓰는 카피라이�
 - 하자 정보가 있으면 상세 설명에 반드시 포함하십시오.
 - 사실과 다른 과장 표현과 이모지 나열은 금지합니다.
 - 상세 설명은 5~8줄, 각 줄은 짧게 쓰십시오.
-다음 JSON 구조만 반환하십시오:
+- 다른 설명·마크다운 없이 JSON만 반환하십시오.
+JSON 구조:
 {"titles": [3개 문자열], "description": "본문", "price_comment": "한 줄", "hashtags": [3~5개]}
 """
+
+
+def parse_result(content: str) -> dict:
+    # 마크다운 펜스·여분 텍스트가 섞여도 JSON 객체만 추출
+    match = re.search(r"\{.*\}", content, re.DOTALL)
+    if not match:
+        raise ValueError("no json object")
+    return json.loads(match.group(0))
 
 
 def build_user_prompt(d: dict) -> str:
@@ -100,9 +113,7 @@ class handler(BaseHTTPRequestHandler):
                 },
                 json={
                     "model": MODEL,
-                    "temperature": 0.7,
-                    "max_tokens": 700,
-                    "response_format": {"type": "json_object"},
+                    "max_tokens": MAX_TOKENS,
                     "messages": [
                         {"role": "system", "content": SYSTEM_PROMPT},
                         {"role": "user", "content": build_user_prompt(data)},
@@ -123,7 +134,7 @@ class handler(BaseHTTPRequestHandler):
 
         try:
             content = res.json()["choices"][0]["message"]["content"]
-            parsed = json.loads(content)
+            parsed = parse_result(content)
             result = {
                 "titles": [str(t) for t in parsed.get("titles", [])][:3],
                 "description": str(parsed.get("description", "")),
