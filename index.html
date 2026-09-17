@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>팔아줘, 한 줄 | AI 중고거래 판매글 생성기</title>
+  <meta name="description" content="물건 정보를 입력하면 AI가 중고거래 판매글을 만들어줍니다." />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header__inner">
+      <a class="logo" href="#hero">🏷️ 팔아줘, 한 줄</a>
+      <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+      <nav class="nav" id="nav">
+        <a href="#hero">소개</a>
+        <a href="#guide">작성 팁</a>
+        <a href="#generator">판매글 생성</a>
+        <a href="#contact">문의</a>
+        <button class="theme-toggle" id="themeToggle" aria-label="다크 모드 전환">🌙</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- 1. HERO -->
+    <section id="hero" class="section hero">
+      <h1>쓸 말이 없어서 못 팔았다면</h1>
+      <p class="hero__sub">물건 정보 6가지만 고르면, 복사해 바로 올릴 수 있는 판매글이 나옵니다.</p>
+      <a class="btn btn--primary" href="#generator">판매글 만들기</a>
+    </section>
+
+    <!-- 2. GUIDE -->
+    <section id="guide" class="section">
+      <h2>잘 팔리는 판매글 3원칙</h2>
+      <div class="cards">
+        <article class="card"><h3>1. 상태는 솔직하게</h3><p>하자를 먼저 쓰는 게 분쟁을 줄입니다. 사용감은 숫자로 표현하세요.</p></article>
+        <article class="card"><h3>2. 사이즈·연식 명시</h3><p>구입 시기, 모델명, 사이즈를 적으면 문의가 줄고 거래가 빨라집니다.</p></article>
+        <article class="card"><h3>3. 거래 방식 명확하게</h3><p>직거래 지역이나 택배 비용 분담 여부를 먼저 밝힐수록 헛질문이 없습니다.</p></article>
+      </div>
+    </section>
+
+    <!-- 3. GENERATOR -->
+    <section id="generator" class="section generator">
+      <h2>AI 판매글 생성기</h2>
+      <div class="generator__grid">
+        <form id="genForm" class="form" novalidate>
+          <label class="field">
+            <span>카테고리 <em>*</em></span>
+            <select name="category" id="category" required>
+              <option value="">선택하세요</option>
+              <option value="fashion">의류·패션잡화</option>
+              <option value="digital">디지털·가전</option>
+              <option value="furniture">가구·인테리어</option>
+              <option value="living">생활·주방</option>
+              <option value="beauty">뷰티·건강</option>
+              <option value="hobby">취미·스포츠</option>
+              <option value="culture">도서·티켓</option>
+              <option value="etc">기타 (애매하면 이것)</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>물품명 <em>*</em></span>
+            <input type="text" name="itemName" id="itemName" maxlength="40" placeholder="예: 무선 이어폰 3세대" required />
+          </label>
+
+          <label class="field">
+            <span>사용 기간 <em>*</em></span>
+            <select name="usedPeriod" id="usedPeriod" required>
+              <option value="">선택하세요</option>
+              <option value="미개봉">미개봉</option>
+              <option value="6개월 이내">6개월 이내</option>
+              <option value="1년">1년</option>
+              <option value="2년 이상">2년 이상</option>
+            </select>
+          </label>
+
+          <fieldset class="field">
+            <legend>상태 <em>*</em></legend>
+            <div class="radio-row">
+              <label><input type="radio" name="condition" value="거의 새것" /> 거의 새것</label>
+              <label><input type="radio" name="condition" value="양호" /> 양호</label>
+              <label><input type="radio" name="condition" value="사용감 있음" /> 사용감 있음</label>
+              <label><input type="radio" name="condition" value="하자 있음" /> 하자 있음</label>
+            </div>
+          </fieldset>
+
+          <label class="field" id="defectField" hidden>
+            <span>하자 설명 <em>*</em></span>
+            <textarea name="defect" id="defect" maxlength="200" rows="3" placeholder="예: 모서리 도장 벗김 1cm"></textarea>
+            <small class="counter"><span id="defectCount">0</span>/200</small>
+          </label>
+
+          <label class="field">
+            <span>희망 금액 (원) <em>*</em></span>
+            <input type="number" name="price" id="price" min="0" step="1000" placeholder="45000" required />
+          </label>
+
+          <fieldset class="field">
+            <legend>거래 방식</legend>
+            <div class="radio-row">
+              <label><input type="checkbox" name="trade" value="직거래" /> 직거래</label>
+              <label><input type="checkbox" name="trade" value="택배" /> 택배</label>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            <span>톤</span>
+            <select name="tone" id="tone">
+              <option value="차분하게">차분하게</option>
+              <option value="친근하게">친근하게</option>
+              <option value="정보 위주">정보 위주</option>
+            </select>
+          </label>
+
+          <button type="submit" class="btn btn--primary" id="submitBtn">판매글 생성하기</button>
+          <p class="message" id="formMessage" role="status" aria-live="polite"></p>
+        </form>
+
+        <div class="result" id="result" hidden>
+          <div class="result__block">
+            <h3>제목 추천</h3>
+            <ul id="titleList" class="title-list"></ul>
+          </div>
+          <div class="result__block">
+            <h3>상세 설명 <button class="btn btn--ghost" data-copy="description">복사</button></h3>
+            <pre id="descBox"></pre>
+          </div>
+          <div class="result__block">
+            <h3>금액 코멘트</h3>
+            <p class="highlight" id="priceBox"></p>
+          </div>
+          <div class="result__block">
+            <h3>태그</h3>
+            <p id="tagBox"></p>
+          </div>
+          <button class="btn" data-copy="all">모두 복사</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CONTACT -->
+    <section id="contact" class="section">
+      <h2>문의하기</h2>
+      <form id="contactForm" class="form form--narrow" novalidate>
+        <label class="field"><span>이메일 <em>*</em></span>
+          <input type="email" name="email" id="email" placeholder="you@example.com" required /></label>
+        <label class="field"><span>의견 <em>*</em></span>
+          <textarea name="content" id="content" rows="4" maxlength="500" required></textarea></label>
+        <button type="submit" class="btn btn--primary" id="contactBtn">보내기</button>
+        <p class="message" id="contactMessage" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 팔아줘, 한 줄 · AI 생성 결과는 게시 전 내용을 한 번 확인해주세요.</p>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./js/main.js"></script>
+</body>
+</html>
