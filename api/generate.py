@@ -1,3 +1,4 @@
+# runtime: vercel-python3.12
 import json
 import os
 from http.server import BaseHTTPRequestHandler
