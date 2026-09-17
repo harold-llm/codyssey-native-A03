@@ -12,9 +12,10 @@ BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip
 API_URL = f"{BASE_URL}/chat/completions"
 # 기관 게이트웨이는 gpt-4o-mini가 없어서 환경변수로 모델 지정 (기본값만 공식 OpenAI용)
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
-UPSTREAM_TIMEOUT = 20  # gpt-5 계열은 추론 토큰까지 합쳐 실측 ~10초 → 여유 확보
+UPSTREAM_TIMEOUT = 28  # 게이트웨이 지연 변동이 커서 넉넉하게 (실패 시 1회 재시도)
 # gpt-5 계열은 추론(reasoning)에 토큰 예산을 쓰므로 max_tokens를 넉넉히
 MAX_TOKENS = 4000
+MAX_ATTEMPTS = 2
 
 CATEGORY_LABELS = {
     "fashion": "의류·패션잡화",
@@ -112,27 +113,32 @@ class handler(BaseHTTPRequestHandler):
         if not api_key:
             return self._send(500, {"error": "서버 설정 오류입니다."})
 
-        try:
-            res = requests.post(
-                API_URL,
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": MODEL,
-                    "max_tokens": MAX_TOKENS,
-                    "messages": [
-                        {"role": "system", "content": SYSTEM_PROMPT},
-                        {"role": "user", "content": build_user_prompt(data)},
-                    ],
-                },
-                timeout=UPSTREAM_TIMEOUT,
-            )
-        except requests.Timeout:
+        res = None
+        for _ in range(MAX_ATTEMPTS):
+            try:
+                res = requests.post(
+                    API_URL,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": MODEL,
+                        "max_tokens": MAX_TOKENS,
+                        "messages": [
+                            {"role": "system", "content": SYSTEM_PROMPT},
+                            {"role": "user", "content": build_user_prompt(data)},
+                        ],
+                    },
+                    timeout=UPSTREAM_TIMEOUT,
+                )
+                break  # 연결 성공 → 재시도 중단
+            except requests.Timeout:
+                continue  # 지연만 재시도 (마지막 회차 후 504)
+            except requests.RequestException:
+                return self._send(502, {"error": "AI 서버 연결에 실패했습니다."})
+        if res is None:
             return self._send(504, {"error": "AI 응답이 지연되었습니다."})
-        except requests.RequestException:
-            return self._send(502, {"error": "AI 서버 연결에 실패했습니다."})
 
         if res.status_code == 429:
             return self._send(429, {"error": "요청이 많아 잠시 후 다시 시도해주세요."})
