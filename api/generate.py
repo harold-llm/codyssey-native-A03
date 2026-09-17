@@ -4,7 +4,10 @@ from http.server import BaseHTTPRequestHandler
 
 import requests
 
-API_URL = "https://api.openai.com/v1/chat/completions"
+# base URL은 환경변수로 받음 (OpenAI 호환 프로바이더 지원)
+# 기본값은 OpenAI 공식 API, 기관 제공 키라면 OPENAI_BASE_URL=https://copa.codyssey.kr/v1 로 설정
+BASE_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+API_URL = f"{BASE_URL}/chat/completions"
 MODEL = "gpt-4o-mini"
 UPSTREAM_TIMEOUT = 12  # 프론트 15초보다 짧게
 

@@ -34,6 +34,7 @@ sell-in-one/
 # 1) 환경 변수 (파일은 git에 올라가지 않습니다)
 cat > .env <<'EOF'
 OPENAI_API_KEY=sk-본인키
+OPENAI_BASE_URL=https://copa.codyssey.kr/v1
 FEEDBACK_WEBHOOK_URL=
 EOF
 
@@ -66,6 +67,7 @@ curl -s -X POST http://localhost:3000/api/generate \
 | 변수 | 필수 | 설명 |
 | --- | --- | --- |
 | `OPENAI_API_KEY` | O | OpenAI API 키 (코드/문서에 실제값을 노출하지 않습니다) |
+| `OPENAI_BASE_URL` | X | OpenAI 호환 API의 base URL. 미설정 시 OpenAI 공식 API(`https://api.openai.com/v1`) 사용. 기관 제공 키라면 `https://copa.codyssey.kr/v1` |
 | `FEEDBACK_WEBHOOK_URL` | X (보너스) | n8n Webhook URL. 미설정 시 문의는 서버 로그에만 기록됩니다 |
 
 ## 실패 처리
