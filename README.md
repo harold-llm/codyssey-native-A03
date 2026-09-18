@@ -61,7 +61,7 @@ curl -s -X POST http://localhost:3000/api/generate \
 
 ## 배포 URL
 
-- Production: `https://sell-in-one-XXXX.vercel.app` ← 배포 후 실제 URL로 교체
+- Production: `https://codyssey-native-a03.vercel.app`
 
 ## 환경 변수
 
