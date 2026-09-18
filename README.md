@@ -24,6 +24,7 @@ sell-in-one/
 │   └── feedback.py     # 문의 접수 API (Webhook 전달, 미설치 시 로그)
 ├── images/             # 제출 스크린샷 등 이미지
 ├── requirements.txt    # requests==2.32.3
+├── vercel.json         # 함수 maxDuration 60초 (AI 호출 ~20초 대응)
 └── .gitignore          # .env 등 민감 파일 제외
 ```
 
